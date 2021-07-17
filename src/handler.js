@@ -16,7 +16,7 @@ const addBook = (req, h) => {
   if (!name) {
     const res = h.response({
       status: 'fail',
-      message: 'Gagal menambahkan buku. Mohon isi Nama buku ',
+      message: 'Gagal menambahkan buku. Mohon isi nama buku',
     });
     res.code(400);
     return res;
@@ -55,30 +55,33 @@ const addBook = (req, h) => {
 };
 
 const getBooksList = (req, h) => {
-  const bookList = [];
+  let bookList = [];
   const params = req.query;
   console.log(params);
   const {name, finished, reading} = params;
-
+  const detailedBookList = books.map((item) => item);
+  console.log(detailedBookList);
   if (finished == 1) {
-    bookList.push(books.filter((val) => val.finished == true));
+    bookList = books.filter((val) => val.finished == true);
   } else if (finished == 0) {
-    bookList.push(books.filter((val) => val.finished == false));
-  }
+    bookList = books.filter((val) => val.finished == false);
+  } else bookList = detailedBookList;
 
 
   if (reading == 1) {
-    bookList.push(books.filter((val) => val.reading == true));
+    bookList = books.filter((val) => val.reading == true);
   } else if (reading == 0) {
-    bookList.push(books.filter((val) => val.reading == false));
-  }
+    bookList = books.filter((val) => val.reading == false);
+  } else bookList = detailedBookList;
 
   if (name) {
-    bookList.push(books.filter((val) => val.name.toLowerCase().includes(name.toLowerCase())));
+    bookList = books.filter((val) => val.name.toLowerCase().includes(name.toLowerCase()));
   }
 
   if (!name && !finished && !reading) {
-    books.forEach((item) => bookList.push({id: item.id, name: item.name, publisher: item.publisher}));
+    const simpleBookList = [];
+    books.forEach((item) => simpleBookList.push({id: item.id, name: item.name, publisher: item.publisher}));
+    bookList = simpleBookList;
   }
   const res = h.response({
     status: 'success',
@@ -88,21 +91,8 @@ const getBooksList = (req, h) => {
   return res;
 };
 
-// const getBooksListByName = (req, h) => {
-//   const params = req.query;
-//   const name = params.name;
-//   const bookList = books.filter((val) => val.name.toLowerCase().includes(toLowerCase(name)));
-//   const res = h.response({
-//     status: 'success',
-//     data: {books: bookList},
-//   });
-//   res.code(200);
-//   return res;
-// };
-
 const getBooksById = (req, h) => {
   const {bookId} = req.params;
-  //   console.log(bookId);
   const book = books.find((item) => item.id === bookId);
   if (book !== undefined) {
     const res = h.response({
@@ -136,7 +126,7 @@ const editBookById = (req, h) => {
   if (book == undefined) {
     const res = h.response({
       status: 'fail',
-      message: 'Gagal memperbaharui buku. Id tidak ditemukan',
+      message: 'Gagal memperbarui buku. Id tidak ditemukan',
     });
     res.code(404);
     return res;
@@ -149,7 +139,7 @@ const editBookById = (req, h) => {
   if (!name) {
     const res = h.response({
       status: 'fail',
-      message: 'Gagal memperbaharui buku. Mohon isi Nama buku ',
+      message: 'Gagal memperbarui buku. Mohon isi nama buku',
     });
     res.code(400);
     return res;
@@ -158,7 +148,7 @@ const editBookById = (req, h) => {
   if (readPage > pageCount) {
     const res = h.response({
       status: 'fail',
-      message: 'Gagal memperbaharui buku. readPage tidak boleh lebih besar dari pageCount',
+      message: 'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount',
     });
     res.code(400);
     return res;
