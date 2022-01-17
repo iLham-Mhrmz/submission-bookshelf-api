@@ -1,7 +1,6 @@
 /* eslint-disable max-len */
 const {nanoid} = require('nanoid');
 const books = require('./books');
-// const notes = require('./notes');
 
 const addBook = (req, h) => {
   const id = nanoid(10);
@@ -55,40 +54,83 @@ const addBook = (req, h) => {
 };
 
 const getBooksList = (req, h) => {
-  let bookList = [];
   const params = req.query;
-  console.log(params);
   const {name, finished, reading} = params;
-  const detailedBookList = books.map((item) => item);
-  console.log(detailedBookList);
-  if (finished == 1) {
-    bookList = books.filter((val) => val.finished == true);
-  } else if (finished == 0) {
-    bookList = books.filter((val) => val.finished == false);
-  } else bookList = detailedBookList;
 
-
-  if (reading == 1) {
-    bookList = books.filter((val) => val.reading == true);
-  } else if (reading == 0) {
-    bookList = books.filter((val) => val.reading == false);
-  } else bookList = detailedBookList;
-
-  if (name) {
-    bookList = books.filter((val) => val.name.toLowerCase().includes(name.toLowerCase()));
-  }
-
-  if (!name && !finished && !reading) {
+  if (finished > 1 || reading > 1) {
     const simpleBookList = [];
     books.forEach((item) => simpleBookList.push({id: item.id, name: item.name, publisher: item.publisher}));
-    bookList = simpleBookList;
+    const res = h.response({
+      status: 'success',
+      data: {books: simpleBookList.map((book) => ({
+        id: book.id,
+        name: book.name,
+        publisher: book.publisher,
+      }))},
+    });
+    res.code(200);
+    return res;
   }
-  const res = h.response({
-    status: 'success',
-    data: {books: bookList},
-  });
-  res.code(200);
-  return res;
+
+  if (finished) {
+    let bookList = [];
+    bookList = books.filter((item) => Number(item.finished) === Number(finished));
+    const res = h.response({
+      status: 'success',
+      data: {books: bookList.map((item) => ({
+        id: item.id,
+        name: item.name,
+        publisher: item.publisher,
+      }))},
+    });
+    res.code(200);
+    return res;
+  }
+
+  if (reading) {
+    let bookList = [];
+    bookList = books.filter((item) => Number(item.reading) === Number(reading));
+    const res = h.response({
+      status: 'success',
+      data: {books: bookList.map((item) => ({
+        id: item.id,
+        name: item.name,
+        publisher: item.publisher,
+      }))},
+    });
+    res.code(200);
+    return res;
+  }
+
+  if (name) {
+    let bookList = [];
+    bookList = books.filter((item) => item.name.toLowerCase().includes(name.toLowerCase()));
+    const res = h.response({
+      status: 'success',
+      data: {books: bookList.map((item) => ({
+        id: item.id,
+        name: item.name,
+        publisher: item.publisher,
+      }))},
+    });
+    res.code(200);
+    return res;
+  }
+
+  if (!name || !finished || !reading) {
+    const simpleBookList = [];
+    books.forEach((item) => simpleBookList.push({id: item.id, name: item.name, publisher: item.publisher}));
+    const res = h.response({
+      status: 'success',
+      data: {books: simpleBookList.map((book) => ({
+        id: book.id,
+        name: book.name,
+        publisher: book.publisher,
+      }))},
+    });
+    res.code(200);
+    return res;
+  }
 };
 
 const getBooksById = (req, h) => {
@@ -115,14 +157,11 @@ const getBooksById = (req, h) => {
 
 const editBookById = (req, h) => {
   const {bookId} = req.params;
-  console.log(bookId);
-  console.log(books);
   const {name, year, author, summary, publisher, pageCount, readPage, reading} = req.payload;
   const finished = false;
   const updatedAt = new Date().toISOString();
 
   const book = books.find((item) => item.id === bookId);
-  console.log(book);
   if (book == undefined) {
     const res = h.response({
       status: 'fail',
@@ -155,7 +194,6 @@ const editBookById = (req, h) => {
   }
 
   const index = books.findIndex((book) => book.id === bookId);
-  //   console.log(index);
   if (index !== -1) {
     books[index] = {
       ...books[index],
@@ -174,7 +212,6 @@ const editBookById = (req, h) => {
       status: 'success',
       message: 'Buku berhasil diperbarui',
     });
-    // console.log(notes[index]);
     res.code(200);
     return res;
   }
@@ -182,7 +219,6 @@ const editBookById = (req, h) => {
 
 const deleteBookById = (req, h) => {
   const {bookId} = req.params;
-  console.log(bookId);
   const index = books.findIndex((book) => book.id === bookId);
 
   if (index !== -1) {
